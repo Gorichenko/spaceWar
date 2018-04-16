@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Space War</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body> 
+<div class="main">
+<div class="life"></div>
+<div class="enemies">
+	<table>
+		<tr>
+        <td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+        </tr>
+		<tr>
+        <td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+        </tr>
+		<tr>
+        <td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+        </tr>
+		<tr>
+        <td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+        </tr>
+	</table>
+</div>
+
+ <div class="modal">
+     <img src="img/error.png" class='modal_close' alt="">
+     <h1>Управление</h1>
+     <p><span class="check">A - </span><span class='about'> &nbsp Двигаться влево</span></p>
+     <p><span class="check">D - </span><span class='about'> &nbsp Двигаться вправо</span></p>
+      <p><span class="check">Space - </span><span class='about'> &nbsp Стрелять</span></p>
+ </div>
+ </div>
+
+</body>
+</html>
+
+<script>
+(function(){
+   close_button=document.querySelector('.modal_close');
+   close_button.addEventListener('click', function(){
+    modal=document.querySelector('.modal');
+    modal.style.display='none';
+   })
+
+    var life=3;
+    var shootIndex=1;
+    function nextLife(){
+    liveBlock=document.querySelector(".life");
+    heart=document.createElement('img');
+    heart.setAttribute('src', 'img/heart.png');
+    title=document.createElement('h1');
+    title.innerHTML=life;
+    liveBlock.innerHTML="";
+    liveBlock.appendChild(heart);
+    liveBlock.appendChild(title);
+    }
+    nextLife();
+    var toRight;
+    var toLeft;
+    var boom;
+    var enemyGun; /*атакующий пришелец*/
+    /*Мой корабль*/
+    var body=document.querySelector('body');
+	var ship=document.createElement('div');
+	ship.style.height="64px";
+    ship.style.width="64px";
+    ship.style.position='absolute';
+    ship.style.bottom="40px";
+    ship.style.left="40px";
+    ship.style.backgroundImage="url('img/rocket_1.png')";
+    body.append(ship);
+
+    /*Корабли пришельцев*/
+    var table=document.querySelectorAll("td");
+    for(var i=0; i<table.length; i++){
+    enemy=document.createElement('div');
+	enemy.style.height="64px";
+    enemy.style.width="64px";
+    enemy.style.backgroundImage="url('img/spaceship.png')";
+    enemy.style.margin="0 auto";
+    enemy.setAttribute("class", 'enemy');
+    enemy.style.position="relative";
+    enemy.setAttribute("id", i);
+    	table[i].append(enemy);
+    }
+
+
+    /*Пушки пришельцев*/
+    function badGuns(){
+    enemies=document.querySelectorAll(".enemy");
+    for(var x=0; x<enemies.length; x++){
+     var enemyBullet=document.createElement('div');
+    enemyBullet.style.height="5px";
+    enemyBullet.style.width="5px";
+    enemyBullet.style.background='orange';
+    enemyBullet.style.position="absolute";
+    enemyBullet.style.marginLeft="29px";
+    enemyBullet.style.marginTop="62px";
+    enemyBullet.setAttribute('class', 'enemyBullet');
+    enemies[x].append(enemyBullet);	
+    }
+}
+badGuns();
+
+    /*выбор атакующего пришельца*/
+    var plee;
+    function enemiesAttack(){       
+          e_top=30;
+          clearInterval(plee);
+          bullets=document.querySelectorAll(".enemyBullet");
+          for(var z=0; z<bullets.length; z++){
+            bullets[z].remove();
+          }
+          badGuns();       
+    	enemiesCount=enemies.length;
+    	index=Math.round(Math.random()*(enemiesCount-1)+1);
+        attackEnemy=enemies[index];
+        enemyGun=attackEnemy.querySelector(".enemyBullet");
+        plee=setInterval(function(){enemyShoot();},25);
+    }
+
+    var oneAttack;
+    var twoAttack;
+    oneAttack=setInterval(function(){ enemiesAttack();},3000);
+    twoAttack=setInterval(function(){ enemiesAttack();},1500);
+   
+    /*выстрелы пришельцев*/
+    var shutGun;
+    var timeout;
+    e_top=30;
+    function enemyShoot(){
+     e_top+=10;	
+     enemyGun.style.marginTop=e_top+"px";
+     MyshipCords=ship.getBoundingClientRect();
+     MyBottom=MyshipCords.bottom;
+     MyLeft=MyshipCords.left;
+     BulletCords=enemyGun.getBoundingClientRect();
+     BulletBottom= BulletCords.bottom;
+     BulletLeft= BulletCords.left;
+     if(BulletBottom>=MyBottom && BulletBottom<=(MyBottom+40)){
+         if(BulletLeft>=MyLeft && BulletLeft<=(MyLeft+40)){
+            enemyGun.remove();
+            life--;
+                clearInterval(destroyChange);
+                    clearInterval(boom);
+                    boom=0;
+                    bulletTop=0;
+                    bullet=document.querySelector(".bullet");
+                    if(bullet!=undefined && bullet!=null){
+                    bullet.remove();    
+                    }
+            myDestroy();
+            shootIndex=0;
+            timeout=setTimeout(function(){myRestart();}, 1000);
+            nextLife();
+            if(life<0){
+            alert('GAME OVER');
+           location.reload();
+            }
+         }
+     }
+    }
+
+    /*взрыв моего корабля*/
+    function myDestroy(){
+    ship.style.backgroundImage="url('img/boom.png')";
+        boom = new Audio("sound/boom.mp3");
+        boom.play();
+    }
+
+    function myRestart(){
+      ship.style.backgroundImage="url('img/rocket_1.png')"; 
+        addbullet(); 
+        shootIndex=1;
+        error=0;
+    }
+    
+    
+
+    /*Моя пушка*/
+    function addbullet(){
+    var bullet=document.createElement('div');
+    bullet.style.height="8px";
+    bullet.style.width="8px";
+    bullet.style.background='red';
+    bullet.style.margin="0 auto";
+    bullet.style.marginTop="-10px";
+    bullet.setAttribute('class', 'bullet');
+    ship.append(bullet);
+}
+addbullet();
+
+   /*Движение*/
+    var m_l=0;
+    function moveRight(){
+    	 m_l+=5;
+    	ship.style.marginLeft=m_l+'px';
+    }
+
+    function moveLeft(){
+        m_l-=5;
+    	ship.style.marginLeft=m_l+'px';
+
+    }
+
+    var bulletTop=0;
+    var error=0;/*ограничение выстрела*/
+
+    /*Выстрел по пришельцам*/
+    function shut(){
+    gun=document.querySelector(".bullet");
+    if(bulletTop==-700){
+     	clearInterval(boom);
+     	boom=0;
+     	bulletTop=0;
+     	gun.remove();
+     	addbullet();
+        error=0;
+     }	 
+     bulletTop-=7;
+     gun.style.marginTop=bulletTop+"px";    
+    }
+
+
+
+    coords=ship.getBoundingClientRect();
+
+    /*Координаты вражеских кораблей*/
+    var arrCords=[];
+    function enemiesCords(){
+     enemies=document.querySelectorAll(".enemy");
+    for(var i=0; i<enemies.length; i++){
+    	arr=[];
+    	identifier=enemies[i].getAttribute("id");
+     	enemyCords=enemies[i].getBoundingClientRect();
+     	enemyBottom=enemyCords.bottom;
+     	enemyLeft=enemyCords.left;
+     	arr.push(identifier);
+        arr.push(enemyBottom);
+        arr.push(enemyLeft);
+        arrCords.push(arr);
+     }
+   
+    }
+    enemiesCords();
+
+     
+     /*Уничтожение врагов*/
+     function destroyBg(block){
+     block.style.background='';
+     }
+
+    var destroyChange;
+    var enemyTimeout;
+    function destroyShip(){
+     bullet=document.querySelector(".bullet");
+     bulletCords=bullet.getBoundingClientRect();
+     bulletBottom=bulletCords.bottom;
+     bulletLeft=bulletCords.left;
+     enemyId=arrCords.length;
+     for(var k=0; k<arrCords.length; k++){
+     		if(bulletBottom <= arrCords[k][1]){
+     			if(bulletLeft >= arrCords[k][2] && bulletLeft <= arrCords[k][2]+64){
+     				enemyShip=document.getElementById(arrCords[k][0]);
+     				if(enemyShip!=null && enemyShip!=undefined){
+                         var boomAudio = new Audio("sound/boom.mp3");
+                         boomAudio.play();
+                         childs=enemyShip.children;
+                         childs[0].remove();
+                         parentBlock=enemyShip.parentNode;
+                         enemyShip.remove();
+                         parentBlock.style.background="url('img/boom.png') no-repeat center";
+                         enemyTimeout=setTimeout(function(){destroyBg(parentBlock);}, 300);
+     				}else{
+     					continue;
+     				}
+     				
+     				clearInterval(destroyChange);
+     				clearInterval(boom);
+     	            boom=0;
+     	            bulletTop=0;
+     	            bullet=document.querySelector(".bullet");
+     	            if(bullet!=undefined && bullet!=null){
+     	            bullet.remove();	
+     	            }
+     	            addbullet();
+                    error=0;
+                    badShips=document.querySelectorAll(".enemy");
+                    if(badShips.length==0 || badShips==undefined){
+                        alert('WINNER');
+                    	 location.reload();
+                    }
+     			}
+     		}     	
+     }
+     
+    }
+
+
+
+    document.addEventListener("keydown", function(e){
+    if(e.keyCode==68){
+    	moveRight()
+    }
+    if(e.keyCode==65){
+    	moveLeft()
+    }
+    })
+
+    document.addEventListener("keypress", function(e){
+     if(e.charCode==32 && error==0 && shootIndex==1){    
+     var myAudio = new Audio("sound/Splash.wav");
+     myAudio.play();
+     boom=setInterval(function () {shut();}, 10);
+     destroyChange=setInterval(function(){destroyShip();},5)
+     error=1;
+     }
+
+    })
+
+
+    })()
+
+
+</script>
